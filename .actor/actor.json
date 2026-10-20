@@ -4,5 +4,8 @@
   "title": "Skilllint",
   "version": "0.1",
   "input": "./input_schema.json",
-  "output": "./output_schema.json"
+  "output": "./output_schema.json",
+  "storages": {
+    "dataset": "./dataset_schema.json"
+  }
 }

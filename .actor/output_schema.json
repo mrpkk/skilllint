@@ -1,71 +1,12 @@
 {
   "actorOutputSchemaVersion": 1,
-  "title": "skilllint result",
-  "description": "Вердикт линтера по одному SKILL.md.",
+  "title": "Вердикт линтера по SKILL.md",
+  "description": "Каждая проверка — отдельная запись в dataset: вердикт, балл, sha256 и находки. Проверка выполняется локально внутри акта.",
   "properties": {
-    "skill": {
+    "results": {
       "type": "string",
-      "description": "Имя проверенного скилла."
-    },
-    "verdict": {
-      "type": "string",
-      "enum": [
-        "PASS",
-        "WARN",
-        "FAIL"
-      ],
-      "description": "Итог проверки."
-    },
-    "score": {
-      "type": "integer",
-      "description": "Балл 0–100."
-    },
-    "sha256": {
-      "type": "string",
-      "description": "Хеш проверенных байт — для воспроизводимости."
-    },
-    "bytes": {
-      "type": "integer",
-      "description": "Размер проверенного файла."
-    },
-    "findings": {
-      "type": "array",
-      "description": "Находки по правилам линтера.",
-      "items": {
-        "type": "object",
-        "properties": {
-          "rule": {
-            "type": "string"
-          },
-          "severity": {
-            "type": "string"
-          },
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "rule",
-          "severity",
-          "message"
-        ]
-      }
-    },
-    "source_url": {
-      "type": "string",
-      "description": "Откуда взят файл, если был url."
-    },
-    "checked_at": {
-      "type": "string",
-      "description": "Время проверки (UTC)."
-    },
-    "note": {
-      "type": "string",
-      "description": "Проверка локальная, данные не покидали акт."
-    },
-    "error": {
-      "type": "string",
-      "description": "Заполняется, если действие не выполнено."
+      "title": "Результаты",
+      "template": "{{links.apiDefaultDatasetUrl}}/items"
     }
   }
 }
