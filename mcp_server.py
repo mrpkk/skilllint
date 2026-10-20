@@ -47,6 +47,7 @@ def main() -> None:
     ap.add_argument("--http-path", default="/mcp",
                     help="путь MCP внутри HTTP-сервера (туннель не срезает префикс)")
     ap.add_argument("--port", type=int, default=0, help="порт (перекрывает --http); $PORT — для PaaS")
+    ap.add_argument("--host", default=os.environ.get("HOST", "127.0.0.1"), help="bind-адрес (0.0.0.0 в контейнерах)")
     args = ap.parse_args()
     port = args.port or args.http or int(os.environ.get("PORT", "0") or 0)
     if port:
@@ -54,7 +55,7 @@ def main() -> None:
         from mcp.server.transport_security import TransportSecuritySettings
         if os.environ.get("MCP_ALLOW_ANY_HOST") == "1":
             security = TransportSecuritySettings(enable_dns_rebinding_protection=False)
-            mcp.run(transport="streamable-http", port=port,
+            mcp.run(transport="streamable-http", port=port, host=args.host,
                     streamable_http_path=args.http_path, transport_security=security)
             return
         security = TransportSecuritySettings(
@@ -64,7 +65,7 @@ def main() -> None:
                              "https://rta.lat", "https://*.rta.lat",
                              "https://rta.ailegal.legal", "https://*.ailegal.legal"],
         )
-        mcp.run(transport="streamable-http", port=port,
+        mcp.run(transport="streamable-http", port=port, host=args.host,
                 streamable_http_path=args.http_path, transport_security=security)
     else:
         asyncio.run(mcp.run_stdio_async())
