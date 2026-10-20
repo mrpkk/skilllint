@@ -55,7 +55,14 @@ def read_input() -> dict:
     if status != 200 or not isinstance(body, dict):
         return {}
     value = body.get("value")
-    return value if isinstance(value, dict) else {}
+    if not isinstance(value, dict):
+        return {}
+    # Apify кладёт вход в запись как {"input": {...}, "filename": ...} —
+    # разворачиваем обёртку, иначе действие увидит пустой вход.
+    inner = value.get("input")
+    if isinstance(inner, dict) and inner:
+        return inner
+    return value
 
 
 def write_output(item: dict) -> None:
