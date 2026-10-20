@@ -46,18 +46,25 @@ def main() -> None:
     ap.add_argument("--http", type=int, default=0)
     ap.add_argument("--http-path", default="/mcp",
                     help="путь MCP внутри HTTP-сервера (туннель не срезает префикс)")
+    ap.add_argument("--port", type=int, default=0, help="порт (перекрывает --http); $PORT — для PaaS")
     args = ap.parse_args()
-    if args.http:
+    port = args.port or args.http or int(os.environ.get("PORT", "0") or 0)
+    if port:
         # mcp.run() сам поднимает свой event loop (anyio.run) — звать без await и вне asyncio.run
         from mcp.server.transport_security import TransportSecuritySettings
+        if os.environ.get("MCP_ALLOW_ANY_HOST") == "1":
+            security = TransportSecuritySettings(enable_dns_rebinding_protection=False)
+            mcp.run(transport="streamable-http", port=port,
+                    streamable_http_path=args.http_path, transport_security=security)
+            return
         security = TransportSecuritySettings(
-            allowed_hosts=["127.0.0.1", "localhost", "rta.lat", "*.rta.lat",
-                           "rta.ailegal.legal", "*.ailegal.legal"],
-            allowed_origins=["http://127.0.0.1:%d" % args.http, "http://localhost:%d" % args.http,
+            allowed_hosts=["127.0.0.1", "127.0.0.1:*", "localhost", "localhost:*",
+                           "rta.lat", "*.rta.lat", "rta.ailegal.legal", "*.ailegal.legal"],
+            allowed_origins=["http://127.0.0.1:%d" % port, "http://localhost:%d" % port,
                              "https://rta.lat", "https://*.rta.lat",
                              "https://rta.ailegal.legal", "https://*.ailegal.legal"],
         )
-        mcp.run(transport="streamable-http", port=args.http,
+        mcp.run(transport="streamable-http", port=port,
                 streamable_http_path=args.http_path, transport_security=security)
     else:
         asyncio.run(mcp.run_stdio_async())
