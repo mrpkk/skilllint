@@ -58,9 +58,11 @@ def read_input() -> dict:
     if status != 200 or not isinstance(body, dict):
         print(f"apify_run: ответ: {str(body)[:200]}", flush=True)
         return {}
-    # Ответ Apify обёрнут в {"data": {...}} — значение записи лежит в data.value
+    # Формат ответа на запись бывает трёх видов: {"data": {"value": {...}}},
+    # {"value": {...}} и «само значение» без обёртки. Берём value, если он есть,
+    # иначе считаем тело самим значением.
     data = body.get("data") if isinstance(body.get("data"), dict) else body
-    value = data.get("value")
+    value = data.get("value") if isinstance(data.get("value"), dict) else data
     if not isinstance(value, dict):
         return {}
     # Apify кладёт вход в запись как {"input": {...}, "filename": ...} —
