@@ -54,7 +54,9 @@ def read_input() -> dict:
     status, body = _api("GET", f"{API}/key-value-stores/{store}/records/{key}")
     if status != 200 or not isinstance(body, dict):
         return {}
-    value = body.get("value")
+    # Ответ Apify обёрнут в {"data": {...}} — значение записи лежит в data.value
+    data = body.get("data") if isinstance(body.get("data"), dict) else body
+    value = data.get("value")
     if not isinstance(value, dict):
         return {}
     # Apify кладёт вход в запись как {"input": {...}, "filename": ...} —
