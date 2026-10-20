@@ -1,0 +1,8 @@
+{
+  "actorSpecification": 1,
+  "name": "skilllint",
+  "title": "Skilllint",
+  "version": "0.1",
+  "input": "./input_schema.json",
+  "output": "./output_schema.json"
+}

@@ -1,0 +1,26 @@
+{
+  "title": "skilllint input",
+  "description": "Пришлите SKILL.md агентского скилла — линтер вернёт вердикт (PASS/WARN/FAIL), балл, sha256 и находки. Проверка идёт полностью внутри акта: наружу ничего не отправляется.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "content": {
+      "title": "SKILL.md (текст)",
+      "type": "string",
+      "description": "Полный текст файла SKILL.md. Обязателен, если не задан url.",
+      "editor": "string"
+    },
+    "url": {
+      "title": "Ссылка на SKILL.md",
+      "type": "string",
+      "description": "Прямая ссылка на raw-файл SKILL.md. Альтернатива content."
+    },
+    "filename": {
+      "title": "Имя скилла",
+      "type": "string",
+      "default": "skill",
+      "description": "Подпись навыка в отчёте."
+    }
+  },
+  "required": []
+}
