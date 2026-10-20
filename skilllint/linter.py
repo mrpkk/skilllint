@@ -32,7 +32,8 @@ RULES: list[dict] = [
 SEVERITY_PENALTY = {"critical": 25, "high": 10, "medium": 5, "low": 2}
 
 TRIGGER_CUES = ("когда", "использовать", "используй", "для чего", "use when", "load when",
-                "apply when", "загрузи", "подходит для")
+                "apply when", "загрузи", "подходит для", "triggers", "when to use",
+                "use this when", "for when", "invoke when")
 DEAD_MARKERS = ("todo", "fixme", "не работает", "deprecated", "устарел", "временно отключ",
                 "не реализовано", "заглушка", "placeholder")
 SECRET_PATTERNS = [
@@ -107,6 +108,27 @@ def _parse_frontmatter(text: str) -> tuple[dict, str, int]:
     return fm, body, raw.count("\n") + 2
 
 
+
+
+def _is_citation(text: str, pos: int) -> bool:
+    """Совпадение внутри кавычек — это цитата примера, а не директива."""
+    line_start = text.rfind("\n", 0, pos) + 1
+    prefix = text[line_start:pos]
+    return prefix.count('"') % 2 == 1 or prefix.count("'") % 2 == 1
+
+def _prose_only(text: str) -> str:
+    """Текст без строк markdown-таблиц и без блоков кода — только проза инструкций."""
+    out, in_fence = [], False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence or stripped.startswith("|"):
+            continue
+        out.append(line)
+    return "\n".join(out)
+
 def _line_of(body: str, offset: int, needle: str) -> int | None:
     idx = body.find(needle)
     if idx == -1:
@@ -126,7 +148,7 @@ def lint_skill(path: str) -> Report:
     if not os.path.exists(p):
         rep.score = 0
         rep.verdict = "FAIL"
-        rep.findings.append(Finding("R-000", "critical", "файл не найден"))
+        rep.findings.append(Finding("R-000", "critical", "file not found"))
         return rep
     data = open(p, "rb").read()
     rep.bytes = len(data)
@@ -135,35 +157,35 @@ def lint_skill(path: str) -> Report:
     fm, body, off = _parse_frontmatter(text)
 
     if not fm:
-        rep.findings.append(Finding("R-001", "critical", "frontmatter (--- ... ---) не найден"))
+        rep.findings.append(Finding("R-001", "critical", "frontmatter (--- ... ---) not found"))
     name = fm.get("name", "")
     desc = fm.get("description", "")
     rep.name = name
     if not name or not re.match(r"^[a-z0-9][a-z0-9-]*$", name):
-        rep.findings.append(Finding("R-002", "high", f"name некорректен или пуст: {name!r}"))
+        rep.findings.append(Finding("R-002", "high", f"name is missing or malformed: {name!r}"))
     if not desc:
-        rep.findings.append(Finding("R-003", "high", "description отсутствует"))
+        rep.findings.append(Finding("R-003", "high", "description is missing"))
     elif len(desc) > MAX_DESC:
-        rep.findings.append(Finding("R-003", "high", f"description длиннее {MAX_DESC} символов ({len(desc)})"))
+        rep.findings.append(Finding("R-003", "high", f"description is longer than {MAX_DESC} characters ({len(desc)})"))
     if desc and not any(c in desc.lower() for c in TRIGGER_CUES):
-        rep.findings.append(Finding("R-004", "medium", "в description нет триггера («когда использовать»)"))
+        rep.findings.append(Finding("R-004", "medium", "no trigger wording in the description (nothing says when to use it)"))
 
     low = text.lower()
     for mk in DEAD_MARKERS:
         if mk in low:
-            rep.findings.append(Finding("R-005", "medium", f"мёртвый маркер: {mk!r}", _line_of(text, 0, mk)))
+            rep.findings.append(Finding("R-005", "medium", f"dead marker: {mk!r}", _line_of(text, 0, mk)))
             break
 
     for pat in SECRET_PATTERNS:
         m = re.search(pat, text)
         if m:
-            rep.findings.append(Finding("R-006", "critical", f"секретоподобный литерал: {m.group(0)[:12]}…", _line_of(text, 0, m.group(0))))
+            rep.findings.append(Finding("R-006", "critical", f"secret-like literal: {m.group(0)[:12]}…", _line_of(text, 0, m.group(0))))
             break
 
     for pat in INJECTION_PATTERNS:
         m = re.search(pat, text, re.I)
         if m:
-            rep.findings.append(Finding("R-007", "critical", f"маркер инъекции/exfiltration: {m.group(0)[:40]}", _line_of(text, 0, m.group(0))))
+            rep.findings.append(Finding("R-007", "critical", f"injection/exfiltration marker: {m.group(0)[:40]}", _line_of(text, 0, m.group(0))))
             break
 
     base = os.path.dirname(p)
@@ -173,11 +195,11 @@ def lint_skill(path: str) -> Report:
             continue
         target = os.path.normpath(os.path.join(base, ref))
         if not os.path.exists(target):
-            rep.findings.append(Finding("R-008", "medium", f"файл не найден: {ref}"))
+            rep.findings.append(Finding("R-008", "medium", f"referenced file not found: {ref}"))
             break
 
     if rep.bytes > MAX_BYTES:
-        rep.findings.append(Finding("R-009", "low", f"размер {rep.bytes} байт > {MAX_BYTES}"))
+        rep.findings.append(Finding("R-009", "low", f"file size {rep.bytes} bytes > {MAX_BYTES}"))
 
     for root, _dirs, files in os.walk(base):
         for f in files:
@@ -188,13 +210,18 @@ def lint_skill(path: str) -> Report:
                 except OSError:
                     continue
                 if mode & 0o002:
-                    rep.findings.append(Finding("R-010", "high", f"файл доступен на запись всем: {os.path.relpath(fp, base)}"))
+                    rep.findings.append(Finding("R-010", "high", f"file is writable by everyone: {os.path.relpath(fp, base)}"))
                     break
 
+    # Инструкции смотрим вне таблиц и вне блоков кода: скилл, который
+    # перечисляет правила, не должен ловиться за собственное описание правил.
+    prose = _prose_only(text)
     for pat in AUTONOMY_PATTERNS:
-        m = re.search(pat, text, re.I)
+        m = re.search(pat, prose, re.I)
+        if m and _is_citation(prose, m.start()):
+            continue  # фраза процитирована (пример в кавычках), а не дана как инструкция
         if m:
-            rep.findings.append(Finding("R-011", "medium", f"неограниченная автономия: {m.group(0)[:40]}", _line_of(text, 0, m.group(0))))
+            rep.findings.append(Finding("R-011", "medium", f"unbounded autonomy: {m.group(0)[:40]}", _line_of(text, 0, m.group(0))))
             break
 
     score = 100
