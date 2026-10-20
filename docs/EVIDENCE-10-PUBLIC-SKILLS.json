@@ -1,0 +1,180 @@
+[
+  {
+    "repo": "anthropics/skills",
+    "path": "skills/claude-api/SKILL.md",
+    "skill": "claude-api",
+    "score": 78,
+    "verdict": "WARN",
+    "sha256": "40537cca17c4aa86",
+    "bytes": 105146,
+    "findings": [
+      {
+        "rule": "R-004",
+        "severity": "medium",
+        "message": "в description нет триггера («когда использовать»)"
+      },
+      {
+        "rule": "R-005",
+        "severity": "medium",
+        "message": "мёртвый маркер: 'deprecated'"
+      },
+      {
+        "rule": "R-008",
+        "severity": "medium",
+        "message": "файл не найден: agent-openai.py"
+      },
+      {
+        "rule": "R-009",
+        "severity": "low",
+        "message": "размер 105146 байт > 60000"
+      },
+      {
+        "rule": "R-011",
+        "severity": "medium",
+        "message": "неограниченная автономия: without asking"
+      }
+    ]
+  },
+  {
+    "repo": "anthropics/skills",
+    "path": "skills/doc-coauthoring/SKILL.md",
+    "skill": "doc-coauthoring",
+    "score": 90,
+    "verdict": "PASS",
+    "sha256": "2e47d78846faeea4",
+    "bytes": 15815,
+    "findings": [
+      {
+        "rule": "R-005",
+        "severity": "medium",
+        "message": "мёртвый маркер: 'placeholder'"
+      },
+      {
+        "rule": "R-008",
+        "severity": "medium",
+        "message": "файл не найден: decision-doc.md"
+      }
+    ]
+  },
+  {
+    "repo": "anthropics/skills",
+    "path": "skills/pdf/SKILL.md",
+    "skill": "pdf",
+    "score": 95,
+    "verdict": "PASS",
+    "sha256": "9f78b8359fbd4943",
+    "bytes": 8072,
+    "findings": [
+      {
+        "rule": "R-004",
+        "severity": "medium",
+        "message": "в description нет триггера («когда использовать»)"
+      }
+    ]
+  },
+  {
+    "repo": "upstash/ratelimit-js",
+    "path": "skills/SKILL.md",
+    "skill": "upstash-ratelimit-ts",
+    "score": 95,
+    "verdict": "PASS",
+    "sha256": "dc99873f4e95d54f",
+    "bytes": 1253,
+    "findings": [
+      {
+        "rule": "R-004",
+        "severity": "medium",
+        "message": "в description нет триггера («когда использовать»)"
+      }
+    ]
+  },
+  {
+    "repo": "upstash/qstash-js",
+    "path": "skills/SKILL.md",
+    "skill": "qstash-js",
+    "score": 95,
+    "verdict": "PASS",
+    "sha256": "2aced4456e61d28f",
+    "bytes": 2982,
+    "findings": [
+      {
+        "rule": "R-008",
+        "severity": "medium",
+        "message": "файл не найден: fundamentals/publishing-messages.md"
+      }
+    ]
+  },
+  {
+    "repo": "upstash/workflow-js",
+    "path": "skills/SKILL.md",
+    "skill": "upstash-workflow-js",
+    "score": 95,
+    "verdict": "PASS",
+    "sha256": "8d94ad14a754cbf1",
+    "bytes": 2249,
+    "findings": [
+      {
+        "rule": "R-004",
+        "severity": "medium",
+        "message": "в description нет триггера («когда использовать»)"
+      }
+    ]
+  },
+  {
+    "repo": "better-auth/better-icons",
+    "path": "skills/SKILL.md",
+    "skill": "better-icons",
+    "score": 100,
+    "verdict": "PASS",
+    "sha256": "3d12532000bae46a",
+    "bytes": 3584,
+    "findings": []
+  },
+  {
+    "repo": "xmtplabs/xmtp-agent-examples",
+    "path": "skills/SKILL.md",
+    "skill": "xmtplabs__xmtp-agent-examples__skills_SKILL",
+    "score": 50,
+    "verdict": "FAIL",
+    "sha256": "b9757a1d905df106",
+    "bytes": 1633,
+    "findings": [
+      {
+        "rule": "R-001",
+        "severity": "critical",
+        "message": "frontmatter (--- ... ---) не найден"
+      },
+      {
+        "rule": "R-002",
+        "severity": "high",
+        "message": "name некорректен или пуст: ''"
+      },
+      {
+        "rule": "R-003",
+        "severity": "high",
+        "message": "description отсутствует"
+      },
+      {
+        "rule": "R-008",
+        "severity": "medium",
+        "message": "файл не найден: skills/building-agents/"
+      }
+    ]
+  },
+  {
+    "repo": "kid-sid/claude-spellbook",
+    "path": "skills/go/skill.md",
+    "skill": "go",
+    "score": 95,
+    "verdict": "PASS",
+    "sha256": "d92bd2e36775d6a7",
+    "bytes": 17507,
+    "findings": [
+      {
+        "rule": "R-008",
+        "severity": "medium",
+        "message": "файл не найден: items []T"
+      }
+    ]
+  }
+]
