@@ -51,22 +51,37 @@ def main() -> None:
     args = ap.parse_args()
     port = args.port or args.http or int(os.environ.get("PORT", "0") or 0)
     if port:
-        # mcp.run() сам поднимает свой event loop (anyio.run) — звать без await и вне asyncio.run
+        # HTTP-режим через ASGI-приложение: так добавляется /health —
+        # Apify и внешние платформы проверяют стартовый URL, прежде чем считать акт живым.
         from mcp.server.transport_security import TransportSecuritySettings
         if os.environ.get("MCP_ALLOW_ANY_HOST") == "1":
             security = TransportSecuritySettings(enable_dns_rebinding_protection=False)
-            mcp.run(transport="streamable-http", port=port, host=args.host,
-                    streamable_http_path=args.http_path, transport_security=security)
-            return
-        security = TransportSecuritySettings(
-            allowed_hosts=["127.0.0.1", "127.0.0.1:*", "localhost", "localhost:*",
-                           "rta.lat", "*.rta.lat", "rta.ailegal.legal", "*.ailegal.legal"],
-            allowed_origins=["http://127.0.0.1:%d" % port, "http://localhost:%d" % port,
-                             "https://rta.lat", "https://*.rta.lat",
-                             "https://rta.ailegal.legal", "https://*.ailegal.legal"],
-        )
-        mcp.run(transport="streamable-http", port=port, host=args.host,
-                streamable_http_path=args.http_path, transport_security=security)
+        else:
+            security = TransportSecuritySettings(
+                allowed_hosts=["127.0.0.1", "127.0.0.1:*", "localhost", "localhost:*",
+                               "rta.lat", "*.rta.lat", "rta.ailegal.legal", "*.ailegal.legal"],
+                allowed_origins=["http://127.0.0.1:%d % port", "http://localhost:%d % port",
+                                 "https://rta.lat", "https://*.rta.lat",
+                                 "https://rta.ailegal.legal", "https://*.ailegal.legal"],
+            )
+        import uvicorn
+        from starlette.responses import JSONResponse
+        from starlette.routing import Route
+
+        app = mcp.streamable_http_app(streamable_http_path=args.http_path,
+                                       transport_security=security)
+
+        async def _health(request):
+            return JSONResponse({"ok": True, "service": "skilllint",
+                                 "mcp_path": args.http_path})
+
+        app.router.routes.insert(0, Route("/health", _health))
+        app.router.routes.insert(0, Route("/", _health))
+        # тот же health под префиксом туннеля (/mitracore/health, /skilllint/health)
+        prefix = args.http_path.rsplit("/", 1)[0]
+        if prefix and prefix != "":
+            app.router.routes.insert(0, Route(prefix + "/health", _health))
+        uvicorn.run(app, host=args.host, port=port, log_level="warning")
     else:
         asyncio.run(mcp.run_stdio_async())
 
