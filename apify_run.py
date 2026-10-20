@@ -46,13 +46,17 @@ def read_input() -> dict:
             return json.loads(raw)
         except Exception:
             return {}
-    if not (os.environ.get("APIFY_TOKEN") and os.environ.get("ACTOR_INPUT_KEY")
-            and os.environ.get("ACTOR_DEFAULT_KEY_VALUE_STORE_ID")):
+    token = os.environ.get("APIFY_TOKEN")
+    key = os.environ.get("ACTOR_INPUT_KEY")
+    store = os.environ.get("ACTOR_DEFAULT_KEY_VALUE_STORE_ID")
+    if not (token and key and store):
+        print(f"apify_run: нет переменных прогона (token={bool(token)}, key={bool(key)}, store={bool(store)})",
+              flush=True)
         return {}
-    store = os.environ["ACTOR_DEFAULT_KEY_VALUE_STORE_ID"]
-    key = os.environ["ACTOR_INPUT_KEY"]
     status, body = _api("GET", f"{API}/key-value-stores/{store}/records/{key}")
+    print(f"apify_run: чтение входа key={key} store={store} -> HTTP {status}", flush=True)
     if status != 200 or not isinstance(body, dict):
+        print(f"apify_run: ответ: {str(body)[:200]}", flush=True)
         return {}
     # Ответ Apify обёрнут в {"data": {...}} — значение записи лежит в data.value
     data = body.get("data") if isinstance(body.get("data"), dict) else body
