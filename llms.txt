@@ -1,0 +1,13 @@
+# skilllint
+
+> Private lint of agent skills. Verdict + score + sha256, nothing leaves the machine.
+
+Tools: `lint_skill(path)`, `compare_skills(paths)`, `lint_rules()`.
+
+Checks: frontmatter, name, description and trigger, dead instructions, secret-shaped literals, prompt-injection and exfiltration markers, broken file references, oversized files, world-writable scripts, unbounded autonomy.
+
+Verdict: PASS (>=80, no critical) | WARN | FAIL (any critical).
+
+Install: `npx -y mcp-remote https://rta.lat/skilllint/mcp` or `python3 mcp_server.py` (stdio).
+
+The returned sha256 can be signed by attest and enforced by drift as an allowlist. Locales: en, hi. India (Bharata) supported from day one; legal claims only from official sources, otherwise pending.

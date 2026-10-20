@@ -1,0 +1,18 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
+  "name": "io.github.mrpkk/skilllint",
+  "description": "Private lint of agent skills: structure, triggers, secrets, prompt injection, broken references. Verdict, score and sha256; nothing leaves the machine.",
+  "status": "active",
+  "repository": {
+    "url": "https://github.com/mrpkk/skilllint",
+    "source": "github"
+  },
+  "version": "1.0.0",
+  "packages": [],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://rta.lat/skilllint/mcp"
+    }
+  ]
+}

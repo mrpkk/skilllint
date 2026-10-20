@@ -1,0 +1,140 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "skilllint",
+    "version": "1.0.0",
+    "description": "Private lint of agent skills: structure, triggers, secrets, prompt injection, broken references, unbounded autonomy. Verdict, score and sha256; nothing leaves the machine.",
+    "license": "MIT"
+  },
+  "servers": [
+    {
+      "url": "https://rta.lat/skilllint"
+    }
+  ],
+  "paths": {
+    "/v1/skills/lint": {
+      "post": {
+        "summary": "Lint a SKILL.md",
+        "description": "Returns verdict (PASS/WARN/FAIL), score, sha256 and findings. The file is read locally; only the verdict and hash leave the machine.",
+        "x-price": "free",
+        "requestBody": {
+          "required": [
+            "path"
+          ],
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "path"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "verdict, score, sha256, findings[]",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/skills/compare": {
+      "post": {
+        "summary": "Compare several candidate skills",
+        "requestBody": {
+          "required": [
+            "paths"
+          ],
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "paths"
+                ],
+                "properties": {
+                  "paths": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ranked candidates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/rules": {
+      "get": {
+        "summary": "Rule table",
+        "responses": {
+          "200": {
+            "description": "rules[]",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "summary": "Live state of every layer",
+        "responses": {
+          "200": {
+            "description": "attest/agentpay/drift/skilllint status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-mcp": {
+    "tools": [
+      "lint_skill",
+      "compare_skills",
+      "lint_rules"
+    ],
+    "locales": [
+      "en",
+      "hi"
+    ]
+  }
+}
