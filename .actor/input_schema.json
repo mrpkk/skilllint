@@ -8,18 +8,20 @@
       "title": "SKILL.md (текст)",
       "type": "string",
       "description": "Полный текст файла SKILL.md. Обязателен, если не задан url.",
-      "editor": "string"
+      "editor": "textarea"
     },
     "url": {
       "title": "Ссылка на SKILL.md",
       "type": "string",
-      "description": "Прямая ссылка на raw-файл SKILL.md. Альтернатива content."
+      "description": "Прямая ссылка на raw-файл SKILL.md. Альтернатива content.",
+      "editor": "textfield"
     },
     "filename": {
       "title": "Имя скилла",
       "type": "string",
       "default": "skill",
-      "description": "Подпись навыка в отчёте."
+      "description": "Подпись навыка в отчёте.",
+      "editor": "textfield"
     }
   },
   "required": []
