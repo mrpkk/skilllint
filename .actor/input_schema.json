@@ -8,7 +8,8 @@
       "title": "SKILL.md (текст)",
       "type": "string",
       "description": "Полный текст файла SKILL.md. Обязателен, если не задан url.",
-      "editor": "textarea"
+      "editor": "textarea",
+      "prefill": "---\nname: demo-skill\ndescription: Use when you need a demo of the linter\n---\n\n# Demo skill\nDo the thing. Replace this text with your own skill."
     },
     "url": {
       "title": "Ссылка на SKILL.md",
@@ -21,7 +22,8 @@
       "type": "string",
       "default": "skill",
       "description": "Подпись навыка в отчёте.",
-      "editor": "textfield"
+      "editor": "textfield",
+      "prefill": "demo-skill"
     }
   },
   "required": []
