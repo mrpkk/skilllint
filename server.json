@@ -1,14 +1,13 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
-  "name": "io.github.mrpkk/skilllint",
-  "description": "Private lint of agent skills: structure, triggers, secrets, prompt injection, broken references. Verdict, score and sha256; nothing leaves the machine.",
-  "status": "active",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "lat.rta/skilllint",
+  "title": "skilllint — vet an agent skill before you install it",
+  "description": "Vet an agent skill before you install it: structure, triggers, secrets.",
   "repository": {
     "url": "https://github.com/mrpkk/skilllint",
     "source": "github"
   },
-  "version": "1.0.0",
-  "packages": [],
+  "version": "0.1.0",
   "remotes": [
     {
       "type": "streamable-http",
