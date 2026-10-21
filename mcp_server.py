@@ -41,6 +41,10 @@ async def lint_rules_tool() -> str:
     return json.dumps({"rules": rules()}, ensure_ascii=False)
 
 
+_PRIVACY = '# Privacy — skilllint\n\nskilllint answers one question about one input. Here is the whole data story.\n\n## What is stored\n\n- **Request counters** — how many calls, of which tool, per day. No content.\n- **The rate limiter** keeps your client address in memory for one hour to count\n  requests. It is not written to disk and disappears on restart.\n- **Errors** are logged without request bodies.\n\n## What is not stored\n\n- the artifact, the skill text, the prompt, the file name, the model output;\n- anything that identifies you personally;\n- IP addresses in persistent form.\n\n## Paid calls\n\nA payment receipt is a public on-chain fact. It carries the amount, the payer\naddress and the time — nothing about the content you verified.\n\n## Deletion and questions\n\nOpen an issue at https://github.com/mrpkk/skilllint/issues. There is no account to delete: the service does\nnot have users, only callers.\n'
+
+_LLMS_INSTALL = '# skilllint — install\n\nRemote MCP server (streamable HTTP). No key, no account.\n\n```json\n{"mcpServers": {"skilllint": {"url": "https://rta.lat/skilllint/mcp"}}}\n```\n\nTools: `lint_skill` — проверить SKILL.md (структура, триггеры, секреты, инъекции, битые ссылки, автономия), `compare_skills` — сравнить кандидатов, `lint_rules` — список правил.\n\nFree, без регистрации.\n\nEndpoint: `https://rta.lat/skilllint/mcp` · Health: `https://rta.lat/skilllint/health` · Privacy: `https://rta.lat/skilllint/privacy` · Source: https://github.com/mrpkk/skilllint\n'
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--http", type=int, default=0)
@@ -75,6 +79,19 @@ def main() -> None:
             return JSONResponse({"ok": True, "service": "skilllint",
                                  "mcp_path": args.http_path})
 
+        from starlette.responses import PlainTextResponse
+
+        async def _privacy(request):
+            return PlainTextResponse(_PRIVACY, media_type="text/plain; charset=utf-8")
+
+        async def _llms(request):
+            return PlainTextResponse(_LLMS_INSTALL, media_type="text/plain; charset=utf-8")
+
+        _prefix = args.http_path.rsplit("/", 1)[0]
+        for _p in ("/privacy", _prefix + "/privacy"):
+            app.router.routes.insert(0, Route(_p, _privacy))
+        for _p in ("/llms-install.md", _prefix + "/llms-install.md"):
+            app.router.routes.insert(0, Route(_p, _llms))
         app.router.routes.insert(0, Route("/health", _health))
         app.router.routes.insert(0, Route("/", _health))
         # тот же health под префиксом туннеля (/mitracore/health, /skilllint/health)
