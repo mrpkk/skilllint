@@ -92,6 +92,29 @@ def main() -> None:
             app.router.routes.insert(0, Route(_p, _privacy))
         for _p in ("/llms-install.md", _prefix + "/llms-install.md"):
             app.router.routes.insert(0, Route(_p, _llms))
+        async def _server_card(request):
+            # Статическая карточка для каталогов, где скан живого /mcp не
+            # проходит. Собирается из того же списка инструментов, что и
+            # tools/list, — расхождение с листингом невозможно.
+            tools = await mcp.list_tools()
+            card = {
+                "serverInfo": {"name": "skilllint", "version": "1.0.0"},
+                "authentication": {"required": False, "schemes": []},
+                "tools": [{"name": x.name, "description": x.description or "",
+                           # В новом SDK поле называется input_schema,
+                           # в старом — inputSchema.
+                           "inputSchema": getattr(x, "inputSchema", None)
+                           or getattr(x, "input_schema", None)
+                           or {"type": "object"}}
+                          for x in tools],
+                "resources": [],
+                "prompts": [],
+            }
+            return JSONResponse(card)
+
+        _prefix = args.http_path.rsplit("/", 1)[0]
+        for _p in ("/.well-known/mcp/server-card.json", _prefix + "/.well-known/mcp/server-card.json"):
+            app.router.routes.insert(0, Route(_p, _server_card))
         app.router.routes.insert(0, Route("/health", _health))
         app.router.routes.insert(0, Route("/", _health))
         # тот же health под префиксом туннеля (/mitracore/health, /skilllint/health)
