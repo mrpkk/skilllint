@@ -102,7 +102,7 @@ def config(service: str, resource: str) -> Config | None:
         network=(os.environ.get("X402_GATE_NETWORK") or MAINNET).strip(),
         facilitator=(os.environ.get("X402_GATE_FACILITATOR") or PAYAI).strip(),
         price_atoms=int(os.environ.get("X402_GATE_PRICE_ATOMS") or PRICE_ATOMS),
-        free_per_day=int(os.environ.get("X402_GATE_FREE_PER_DAY") or 100),
+        free_per_day=int(os.environ.get("X402_GATE_FREE_PER_DAY") or 20),
         sub_price_atoms=int(os.environ.get("X402_GATE_SUB_PRICE_ATOMS") or SUB_PRICE_ATOMS),
         sub_secret=(os.environ.get("X402_GATE_SUB_SECRET") or "").strip(),
     )
