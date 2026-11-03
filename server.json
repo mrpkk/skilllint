@@ -7,11 +7,12 @@
     "url": "https://github.com/mrpkk/skilllint",
     "source": "github"
   },
-  "version": "0.1.0",
+  "version": "0.2.0",
   "remotes": [
     {
       "type": "streamable-http",
       "url": "https://rta.lat/skilllint/mcp"
     }
-  ]
+  ],
+  "websiteUrl": "https://rta.lat/skilllint/pricing"
 }

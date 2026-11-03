@@ -19,6 +19,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from skilllint.linter import compare, lint_skill, rules  # noqa: E402
 from mcp.server.mcpserver import MCPServer  # noqa: E402
+import x402_gate  # noqa: E402  (цена и 402 после бесплатного лимита)
 
 mcp = MCPServer("skilllint", version="1.0.0")
 
@@ -115,12 +116,61 @@ def main() -> None:
         _prefix = args.http_path.rsplit("/", 1)[0]
         for _p in ("/.well-known/mcp/server-card.json", _prefix + "/.well-known/mcp/server-card.json"):
             app.router.routes.insert(0, Route(_p, _server_card))
+
+        # ── цена и оплата ───────────────────────────────────────────────
+        # Бесплатный лимит в день, дальше 402 по x402. Адрес страницы цены
+        # уходит в server.json (websiteUrl): без него каталоги не показывают
+        # цену вовсе — они читают её с сайта, а не из нашего ответа.
+        gate_cfg = x402_gate.config("skilllint",
+                                    f"https://rta.lat{args.http_path}")
+        if gate_cfg is not None:
+            from starlette.requests import Request
+
+            async def _pricing(request):
+                return JSONResponse(
+                    {"service": "skilllint", "price_usd": gate_cfg.price_usd,
+                     "free_per_day": gate_cfg.free_per_day,
+                     "subscription_usd": gate_cfg.sub_price_usd,
+                     "subscription_period_days": 30,
+                     "network": gate_cfg.network, "pay_to": gate_cfg.pay_to,
+                     "resource": gate_cfg.resource},
+                    headers={"Cache-Control": "no-store"})
+
+            async def _pricing_html(request):
+                from starlette.responses import HTMLResponse
+                page = x402_gate.pricing_page(
+                    gate_cfg, title="skilllint — vet an agent skill before install",
+                    what=("Structure, triggers, secrets, prompt-injection, broken links "
+                          "and autonomy — one verdict with a reproducible hash."),
+                    docs="https://rta.lat/skilllint/llms-install.md")
+                return HTMLResponse(page, headers={"Cache-Control": "no-store"})
+
+            async def _subscribe(request: Request):
+                status, body, extra = x402_gate.subscribe(
+                    gate_cfg, request.headers.get("x-payment")
+                    or request.headers.get("payment-signature") or "")
+                return JSONResponse(body, status_code=status, headers=extra)
+
+            app.router.routes.insert(0, Route("/pricing.json", _pricing))
+            app.router.routes.insert(0, Route(_prefix + "/pricing.json", _pricing))
+            app.router.routes.insert(0, Route("/pricing", _pricing_html))
+            app.router.routes.insert(0, Route(_prefix + "/pricing", _pricing_html))
+            app.router.routes.insert(0, Route("/subscribe", _subscribe,
+                                              methods=["POST"]))
+            app.router.routes.insert(0, Route(_prefix + "/subscribe", _subscribe,
+                                              methods=["POST"]))
+
         app.router.routes.insert(0, Route("/health", _health))
         app.router.routes.insert(0, Route("/", _health))
         # тот же health под префиксом туннеля (/mitracore/health, /skilllint/health)
         prefix = args.http_path.rsplit("/", 1)[0]
         if prefix and prefix != "":
             app.router.routes.insert(0, Route(prefix + "/health", _health))
+        # Гейт ставится последним: он оборачивает уже собранное приложение,
+        # и 402 решается до парсера MCP, а не внутри инструмента.
+        if gate_cfg is not None:
+            app = x402_gate.middleware(
+                gate_cfg, x402_gate.DailyQuota(gate_cfg.free_per_day))(app)
         uvicorn.run(app, host=args.host, port=port, log_level="warning")
     else:
         asyncio.run(mcp.run_stdio_async())
