@@ -165,6 +165,9 @@ def main() -> None:
         # тот же health под префиксом туннеля (/mitracore/health, /skilllint/health)
         prefix = args.http_path.rsplit("/", 1)[0]
         if prefix and prefix != "":
+            # Голый префикс тоже отвечает: человек, открывший https://rta.lat/skilllint,
+            # должен увидеть карточку сервера, а не 404.
+            app.router.routes.insert(0, Route(prefix, _health))
             app.router.routes.insert(0, Route(prefix + "/health", _health))
         # Гейт ставится последним: он оборачивает уже собранное приложение,
         # и 402 решается до парсера MCP, а не внутри инструмента.
