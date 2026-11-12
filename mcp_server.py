@@ -19,17 +19,38 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from skilllint.linter import compare, lint_skill, rules  # noqa: E402
 from mcp.server.mcpserver import MCPServer  # noqa: E402
+from mcp.types import ToolAnnotations  # noqa: E402
 import x402_gate  # noqa: E402  (цена и 402 после бесплатного лимита)
 
 mcp = MCPServer("skilllint", version="1.0.0")
 
+# Описания и аннотации — на английском и с readOnlyHint: каталоги (Glama,
+# mcpservers.org, реестр MCP) показывают аннотации бейджем «read-only» и
+# отсеивают серверы без них. Русский текст там читают только те, кто ищет
+# русскоязычный листинг.
+_READONLY = dict(read_only_hint=True, destructive_hint=False,
+                 idempotent_hint=True, open_world_hint=False)
 
-@mcp.tool(name="lint_skill", description="Проверить SKILL.md: структура, триггеры, секреты, инъекции, битые ссылки, автономия. Возвращает вердикт, балл и sha256.")
+
+@mcp.tool(
+    name="lint_skill",
+    title="Vet an agent skill",
+    description=("Vet a SKILL.md before you install it: structure, trigger quality, "
+                 "leaked secrets, prompt-injection markers, broken links and autonomy "
+                 "claims. Returns a verdict, a score and a sha256 of the checked file."),
+    annotations=ToolAnnotations(title="Vet an agent skill", **_READONLY),
+)
 async def lint_skill_tool(path: str) -> str:
     return json.dumps(lint_skill(path).as_dict(), ensure_ascii=False)
 
 
-@mcp.tool(name="compare_skills", description="Сравнить нескольких кандидатов из разных реестров и ранжировать по вердикту и доказательной базе.")
+@mcp.tool(
+    name="compare_skills",
+    title="Compare agent skills",
+    description=("Compare candidate skills from different registries and rank them by "
+                 "verdict and evidence quality. Takes a comma-separated list of paths."),
+    annotations=ToolAnnotations(title="Compare agent skills", **_READONLY),
+)
 async def compare_skills_tool(paths: str) -> str:
     items = [p.strip() for p in paths.replace("\n", ",").split(",") if p.strip()]
     if not items:
@@ -37,7 +58,12 @@ async def compare_skills_tool(paths: str) -> str:
     return json.dumps({"candidates": compare(items)}, ensure_ascii=False)
 
 
-@mcp.tool(name="lint_rules", description="Список правил линтера с идентификаторами и severity.")
+@mcp.tool(
+    name="lint_rules",
+    title="List lint rules",
+    description=("List the linter's rules with their identifiers and severity levels."),
+    annotations=ToolAnnotations(title="List lint rules", **_READONLY),
+)
 async def lint_rules_tool() -> str:
     return json.dumps({"rules": rules()}, ensure_ascii=False)
 
@@ -101,7 +127,14 @@ def main() -> None:
             card = {
                 "serverInfo": {"name": "skilllint", "version": "1.0.0"},
                 "authentication": {"required": False, "schemes": []},
-                "tools": [{"name": x.name, "description": x.description or "",
+                "tools": [{"name": x.name,
+                           "title": getattr(x, "title", None) or x.name,
+                           "description": x.description or "",
+                           # Аннотации — те же, что отдаёт tools/list:
+                           # каталоги читают статическую карточку, когда
+                           # живой скан не проходит.
+                           "annotations": (x.annotations.model_dump(by_alias=True, exclude_none=True)
+                                           if getattr(x, "annotations", None) else None),
                            # В новом SDK поле называется input_schema,
                            # в старом — inputSchema.
                            "inputSchema": getattr(x, "inputSchema", None)
